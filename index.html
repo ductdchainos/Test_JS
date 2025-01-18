@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách tài sản</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon"> 
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="container mx-auto">
+    <h1 class="text-2xl font-bold my-4">Danh sách tài sản</h1>
+    
+    <button onclick="openModal()" class="bg-green-500 text-white px-4 py-2 rounded mb-4">Thêm Mới Tài Sản</button>
+    
+    <table id="taisanTable" class="table-auto w-full border-collapse border border-gray-300">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border border-gray-300 px-4 py-2">STT</th>
+          <th class="border border-gray-300 px-4 py-2">Chọn</th>
+          <th class="border border-gray-300 px-4 py-2">Mã tài sản</th>
+          <th class="border border-gray-300 px-4 py-2">Tên tài sản</th>
+          <th class="border border-gray-300 px-4 py-2">Đơn vị tính</th>
+          <th class="border border-gray-300 px-4 py-2">Nhóm tài sản</th>
+          <th class="border border-gray-300 px-4 py-2">Loại tài sản</th>
+          <th class="border border-gray-300 px-4 py-2">Thương hiệu</th>
+          <th class="border border-gray-300 px-4 py-2">Ngày đưa vào sử dụng</th>
+          <th class="border border-gray-300 px-4 py-2">Mã người nhập</th>
+          <th class="border border-gray-300 px-4 py-2">Tên người nhập</th>
+          <th class="border border-gray-300 px-4 py-2">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Danh sách tài sản sẽ được thêm động tại đây -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Modal Form -->
+  <div id="modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/2">
+      <h2 class="text-xl font-bold mb-4">Thêm Mới Tài Sản</h2>
+      <form id="taiSanForm">
+        <div class="mb-4">
+          <label for="maTaiSan" class="block">Mã tài sản:</label>
+          <input type="text" id="maTaiSan" class="border px-4 py-2 w-full" required>
+          <span id="maTaiSanError" class="text-red-500 text-sm hidden">Mã tài sản không được để trống.</span>
+        </div>
+        <div class="mb-4">
+          <label for="tenTaiSan" class="block">Tên tài sản:</label>
+          <input type="text" id="tenTaiSan" class="border px-4 py-2 w-full" required>
+          <span id="tenTaiSanError" class="text-red-500 text-sm hidden">Tên tài sản không được để trống.</span>
+        </div>
+        <div class="mb-4">
+          <label for="donViTinh" class="block">Đơn vị tính:</label>
+          <input type="text" id="donViTinh" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="mb-4">
+          <label for="nhomTaiSan" class="block">Nhóm tài sản:</label>
+          <input type="text" id="nhomTaiSan" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="mb-4">
+          <label for="loaiTaiSan" class="block">Loại tài sản:</label>
+          <input type="text" id="loaiTaiSan" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="mb-4">
+          <label for="thuongHieu" class="block">Thương hiệu:</label>
+          <input type="text" id="thuongHieu" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="mb-4">
+          <label for="ngayDuaVaoSuDung" class="block">Ngày đưa vào sử dụng:</label>
+          <input type="date" id="ngayDuaVaoSuDung" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="mb-4">
+          <label for="maNhanSu" class="block">Mã người nhập:</label>
+          <input type="text" id="maNhanSu" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="mb-4">
+          <label for="tenKho" class="block">Tên người nhập:</label>
+          <input type="text" id="tenKho" class="border px-4 py-2 w-full" required>
+        </div>
+        <div class="flex justify-between">
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Lưu</button>
+          <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded" onclick="closeModal()">Đóng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let taiSanData = [];
+
+    // Mở Modal
+    function openModal() {
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    // Đóng Modal
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    // Lấy danh sách tài sản từ server
+    async function fetchDSTaiSan() {
+      try {
+        const response = await fetch('http://localhost:3000/taisan');
+        taiSanData = await response.json();
+        const tableBody = document.querySelector('#taisanTable tbody');
+        tableBody.innerHTML = ''; // Clear existing rows
+        taiSanData.forEach((item, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="border border-gray-300 px-4 py-2">${index + 1}</td>
+            <td class="border border-gray-300 px-4 py-2">
+              <input type="checkbox">
+            </td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_MaTaiSan}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_TenTaiSan}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhapKho_DonViTinh}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhomTaiSan}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_LoaiTaiSan}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_ThuongHieu}</td>
+            <td class="border border-gray-300 px-4 py-2">${new Date(item.DT_QLTS_TS_NgayDuaVaoSuDung).toLocaleDateString()}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhapKho_MaNhanSu}</td>
+            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhapKho_TenKho_Ten}</td>
+            <td class="border border-gray-300 px-4 py-2">
+              <button class="bg-blue-500 text-white px-2 py-1 rounded" onclick="editTaiSan(${item.DT_QLTS_TS_ID})">Sửa</button>
+              <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="deleteTaiSan(${item.DT_QLTS_TS_ID})">Xóa</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Error fetching tài sản:', error);
+      }
+    }
+
+    // Kiểm tra mã tài sản và số seri có trùng không
+    function checkTaiSanTrung(maTaiSan) {
+      return taiSanData.some(item => item.DT_QLTS_TS_MaTaiSan === maTaiSan);
+    }
+
+    // Submit form và thêm tài sản
+    document.getElementById('taiSanForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // Lấy giá trị các trường từ form
+      const maTaiSan = document.getElementById('maTaiSan').value.trim();
+      const tenTaiSan = document.getElementById('tenTaiSan').value.trim();
+
+      // Validate dữ liệu
+      if (!maTaiSan || !tenTaiSan) {
+        alert('Mã tài sản và tên tài sản không được để trống.');
+        return;
+      }
+
+      // Kiểm tra trùng mã tài sản
+      if (checkTaiSanTrung(maTaiSan)) {
+        alert('Mã tài sản đã tồn tại.');
+        return;
+      }
+
+      const newTaiSan = {
+        DT_QLTS_TS_MaTaiSan: maTaiSan,
+        DT_QLTS_TS_TenTaiSan: tenTaiSan,
+        DT_QLTS_TS_NhapKho_DonViTinh: document.getElementById('donViTinh').value,
+        DT_QLTS_TS_NhomTaiSan: document.getElementById('nhomTaiSan').value,
+        DT_QLTS_TS_LoaiTaiSan: document.getElementById('loaiTaiSan').value,
+        DT_QLTS_TS_ThuongHieu: document.getElementById('thuongHieu').value,
+        DT_QLTS_TS_NgayDuaVaoSuDung: document.getElementById('ngayDuaVaoSuDung').value,
+        DT_QLTS_TS_NhapKho_MaNhanSu: document.getElementById('maNhanSu').value,
+        DT_QLTS_TS_NhapKho_TenKho_Ten: document.getElementById('tenKho').value
+      };
+
+      // Gửi yêu cầu thêm tài sản mới
+      fetch('http://localhost:3000/taisan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTaiSan)
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Thêm tài sản thành công!');
+        fetchDSTaiSan();  // Refresh danh sách
+        closeModal();      // Đóng modal
+      })
+      .catch(error => console.error('Error adding tài sản:', error));
+    });
+
+    // Load danh sách tài sản khi trang load
+    document.addEventListener('DOMContentLoaded', fetchDSTaiSan);
+  </script>
+</body>
+</html>
