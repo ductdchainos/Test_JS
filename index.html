@@ -5,127 +5,230 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Danh sách tài sản</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon"> 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
 <body>
-  <div class="container mx-auto">
-    <h1 class="text-2xl font-bold my-4">Danh sách tài sản</h1>
+  <div class="container mt-4">
+    <h1 class="text-center mb-4">Danh sách tài sản</h1>
     
-    <button onclick="openModal()" class="bg-green-500 text-white px-4 py-2 rounded mb-4">Thêm Mới Tài Sản</button>
-    
-    <table id="taisanTable" class="table-auto w-full border-collapse border border-gray-300">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border border-gray-300 px-4 py-2">STT</th>
-          <th class="border border-gray-300 px-4 py-2">Chọn</th>
-          <th class="border border-gray-300 px-4 py-2">Mã tài sản</th>
-          <th class="border border-gray-300 px-4 py-2">Tên tài sản</th>
-          <th class="border border-gray-300 px-4 py-2">Đơn vị tính</th>
-          <th class="border border-gray-300 px-4 py-2">Nhóm tài sản</th>
-          <th class="border border-gray-300 px-4 py-2">Loại tài sản</th>
-          <th class="border border-gray-300 px-4 py-2">Thương hiệu</th>
-          <th class="border border-gray-300 px-4 py-2">Ngày đưa vào sử dụng</th>
-          <th class="border border-gray-300 px-4 py-2">Mã người nhập</th>
-          <th class="border border-gray-300 px-4 py-2">Tên người nhập</th>
-          <th class="border border-gray-300 px-4 py-2">Thao tác</th>
+    <button class="btn btn-success mb-4" onclick="addTaiSan()">Thêm Mới Tài Sản</button>
+    <label for="itemsPerPage">Số tài sản trên mỗi trang:</label>
+      <select id="itemsPerPage" onchange="changeItemsPerPage()">
+        <option value="2" selected>2</option>
+        <option value="4">4</option>
+        <option value="6">6</option>
+        <option value="8">8</option>
+      </select>
+    <table id="taisanTable" class="table table-bordered table-striped">
+      <thead class="table-light">
+        <tr>
+          <th>STT</th>
+          <th>Chọn</th>
+          <th>Mã tài sản</th>
+          <th>Tên tài sản</th>
+          <th>Đơn vị tính</th>
+          <th>Nhóm tài sản</th>
+          <th>Loại tài sản</th>
+          <th>Thương hiệu</th>
+          <th>Ngày đưa vào sử dụng</th>
+          <th>Mã người nhập</th>
+          <th>Tên người nhập</th>
+          <th>Thao tác</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="taiSanBody">
         <!-- Danh sách tài sản sẽ được thêm động tại đây -->
       </tbody>
     </table>
+    <!-- Nút chuyển trang -->
+    <div id="pagination">
+      <button onclick="previousPage()">Trước</button>
+      <span id="currentPage">1</span>
+      <button onclick="nextPage()">Tiếp</button>
+    </div>
   </div>
   
-  <!-- Modal Form -->
-  <div id="modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-1/2">
-      <h2 class="text-xl font-bold mb-4">Thêm Mới Tài Sản</h2>
-      <form id="taiSanForm">
-        <div class="mb-4">
-          <label for="maTaiSan" class="block">Mã tài sản:</label>
-          <input type="text" id="maTaiSan" class="border px-4 py-2 w-full" required>
-          <span id="maTaiSanError" class="text-red-500 text-sm hidden">Mã tài sản không được để trống.</span>
+    <!-- Modal Form -->
+    <div id="modal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle">Thêm Mới Tài Sản</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="taiSanForm">             
+              <div class="mb-4">
+                <label for="pbql" class="block">Phòng ban quản lý:</label>
+                <input type="text" id="pbql" name="DT_QLTS_TS_PBQL" class="border px-4 py-2 w-full" required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="nhomTaiSan" class="block">Nhóm tài sản:</label>
+                <input type="number" id="nhomTaiSan" name="DT_QLTS_TS_NhomTaiSan" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="loaiTaiSan" class="block">Loại tài sản:</label>
+                <input type="text" id="loaiTaiSan" name="DT_QLTS_TS_LoaiTaiSan" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="phongHienTai" class="block">Phòng hiện tại:</label>
+                <input type="text" id="phongHienTai" name="DT_QLTS_TS_PhongHienTai" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="tenPhongHienTai" class="block">Tên phòng hiện tại:</label>
+                <input type="text" id="tenPhongHienTai" name="DT_QLTS_TS_TenPhongHienTai" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="maTaiSan" class="block">Mã tài sản:</label>
+                <input type="text" id="maTaiSan" name="DT_QLTS_TS_MaTaiSan" class="border px-4 py-2 w-full" required>
+                <div class="invalid-feedback">Không được để trống.</div>
+                <div id="maTaiSanError" class="d-none" style="color: red;">Mã tài sản không được trùng với mã đã có.</div>
+              </div>
+              <div class="mb-4">
+                <label for="tenTaiSan" class="block">Tên tài sản:</label>
+                <input type="text" id="tenTaiSan" name="DT_QLTS_TS_TenTaiSan" class="border px-4 py-2 w-full" required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="maNhomThietBiDiKem" class="block">Mã nhóm thiết bị đi kèm:</label>
+                <input type="text" id="maNhomThietBiDiKem" name="DT_QLTS_TS_MaNhomThietBiDiKem" class="border px-4 py-2 w-full">
+              </div>
+              <div class="mb-4">
+                <label for="nguonGoc" class="block">Nguồn gốc:</label>
+                <input type="number" id="nguonGoc" name="DT_QLTS_TS_NguonGoc" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="tinhTrang" class="block">Tình trạng:</label>
+                <input type="text" id="tinhTrang" name="DT_QLTS_TS_TinhTrang" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="moTa" class="block text-center">Mô tả:</label>
+                <textarea id="moTa" name="DT_QLTS_TS_MoTa" class="border px-4 py-2 w-full"></textarea>
+              </div>
+              <div class="mb-4">
+                <label for="model" class="block">Model:</label>
+                <input type="text" id="model" name="DT_QLTS_TS_Model" class="border px-4 py-2 w-full">
+              </div>
+              <div class="mb-4">
+                <label for="thuongHieu" class="block">Thương hiệu:</label>
+                <input type="text" id="thuongHieu" name="DT_QLTS_TS_ThuongHieu" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="namSanXuat" class="block">Năm sản xuất:</label>
+                <input type="number" id="namSanXuat" name="DT_QLTS_TS_NamSanXuat" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="ngayDuaVaoSuDung" class="block">Ngày đưa vào sử dụng:</label>
+                <input type="date" id="ngayDuaVaoSuDung" name="DT_QLTS_TS_NgayDuaVaoSuDung" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="xuatXu" class="block">Xuất xứ:</label>
+                <input type="text" id="xuatXu" name="DT_QLTS_TS_XuatXu" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="serialNumber" class="block">Serial Number:</label>
+                <input type="text" id="serialNumber" name="DT_QLTS_TS_SerialNumber" class="border px-4 py-2 w-full">
+                <div id="serialNumberError" class="d-none" style="color: red;">Serial Number không được trùng với mã đã có.</div>
+              </div>
+              <div class="mb-4">
+                <label for="kichThuocDai" class="block">Kích thước - Dài:</label>
+                <input type="number" id="kichThuocDai" name="DT_QLTS_TS_KichThuoc_Dai" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="kichThuocRong" class="block">Kích thước - Rộng:</label>
+                <input type="number" id="kichThuocRong" name="DT_QLTS_TS_KichThuoc_Rong" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="kichThuocCao" class="block">Kích thước - Cao:</label>
+                <input type="number" id="kichThuocCao" name="DT_QLTS_TS_KichThuoc_Cao" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="giayToKemTheoTenFile" class="block">Giấy tờ kèm theo - Tên file:</label>
+                <input type="text" id="giayToKemTheoTenFile" name="DT_QLTS_TS_GiayToKemTheo_TenFile" class="border px-4 py-2 w-full">
+              </div>
+              <div class="mb-4">
+                <label for="giayToKemTheoDataFile" class="block text-center">Giấy tờ kèm theo - Data file:</label>
+                <textarea id="giayToKemTheoDataFile" name="DT_QLTS_TS_GiayToKemTheo_DataFile" class="border px-4 py-2 w-full"></textarea>
+              </div>
+              <div class="mb-4">
+                <label for="ghiChu" class="block text-center">Ghi chú:</label>
+                <textarea id="ghiChu" name="DT_QLTS_TS_TS_GhiChu" class="border px-4 py-2 w-full"></textarea>
+              </div>
+              <div class="mb-4">
+                <label for="maNhanSu" class="block">Mã người nhập:</label>
+                <input type="text" id="maNhanSu" name="DT_QLTS_TS_NhapKho_MaNhanSu" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="soKho" class="block">Số kho:</label>
+                <input type="number" id="soKho" name="DT_QLTS_TS_NhapKho_TenKho" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="tenKho" class="block">Tên kho:</label>
+                <input type="text" id="tenKho" name="DT_QLTS_TS_NhapKho_TenKho_Ten" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>
+              <div class="mb-4">
+                <label for="donViTinh" class="block">Đơn vị tính:</label>
+                <input type="text" id="donViTinh" name="DT_QLTS_TS_NhapKho_DonViTinh" class="border px-4 py-2 w-full"required>
+                <div class="invalid-feedback">Không được để trống.</div>
+              </div>             
+            </form>
+          <div class="modal-footer">
+            <button type="submit" id="submitBtn" form="taiSanForm" class="btn btn-primary">Lưu</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
         </div>
-        <div class="mb-4">
-          <label for="tenTaiSan" class="block">Tên tài sản:</label>
-          <input type="text" id="tenTaiSan" class="border px-4 py-2 w-full" required>
-          <span id="tenTaiSanError" class="text-red-500 text-sm hidden">Tên tài sản không được để trống.</span>
-        </div>
-        <div class="mb-4">
-          <label for="donViTinh" class="block">Đơn vị tính:</label>
-          <input type="text" id="donViTinh" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="mb-4">
-          <label for="nhomTaiSan" class="block">Nhóm tài sản:</label>
-          <input type="text" id="nhomTaiSan" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="mb-4">
-          <label for="loaiTaiSan" class="block">Loại tài sản:</label>
-          <input type="text" id="loaiTaiSan" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="mb-4">
-          <label for="thuongHieu" class="block">Thương hiệu:</label>
-          <input type="text" id="thuongHieu" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="mb-4">
-          <label for="ngayDuaVaoSuDung" class="block">Ngày đưa vào sử dụng:</label>
-          <input type="date" id="ngayDuaVaoSuDung" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="mb-4">
-          <label for="maNhanSu" class="block">Mã người nhập:</label>
-          <input type="text" id="maNhanSu" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="mb-4">
-          <label for="tenKho" class="block">Tên người nhập:</label>
-          <input type="text" id="tenKho" class="border px-4 py-2 w-full" required>
-        </div>
-        <div class="flex justify-between">
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Lưu</button>
-          <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded" onclick="closeModal()">Đóng</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 
+    
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let taiSanData = [];
-
-    // Mở Modal
-    function openModal() {
-      document.getElementById('modal').classList.remove('hidden');
-    }
-
-    // Đóng Modal
-    function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
-
+    let action = 0;
     // Lấy danh sách tài sản từ server
     async function fetchDSTaiSan() {
       try {
-        const response = await fetch('http://localhost:3000/taisan');
+        const response = await fetch('http://localhost:3000/DSTaiSan'); // Đổi endpoint thành /DSTaiSan
         taiSanData = await response.json();
         const tableBody = document.querySelector('#taisanTable tbody');
         tableBody.innerHTML = ''; // Clear existing rows
         taiSanData.forEach((item, index) => {
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td class="border border-gray-300 px-4 py-2">${index + 1}</td>
-            <td class="border border-gray-300 px-4 py-2">
-              <input type="checkbox">
-            </td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_MaTaiSan}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_TenTaiSan}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhapKho_DonViTinh}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhomTaiSan}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_LoaiTaiSan}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_ThuongHieu}</td>
-            <td class="border border-gray-300 px-4 py-2">${new Date(item.DT_QLTS_TS_NgayDuaVaoSuDung).toLocaleDateString()}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhapKho_MaNhanSu}</td>
-            <td class="border border-gray-300 px-4 py-2">${item.DT_QLTS_TS_NhapKho_TenKho_Ten}</td>
-            <td class="border border-gray-300 px-4 py-2">
-              <button class="bg-blue-500 text-white px-2 py-1 rounded" onclick="editTaiSan(${item.DT_QLTS_TS_ID})">Sửa</button>
-              <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="deleteTaiSan(${item.DT_QLTS_TS_ID})">Xóa</button>
+            <td>${index + 1}</td>
+            <td><input type="checkbox" ${item.DT_QLTS_TS_Chon ? 'checked' : ''}></td>
+            <td>${item.DT_QLTS_TS_MaTaiSan}</td>
+            <td>${item.DT_QLTS_TS_TenTaiSan}</td>
+            <td>${item.DT_QLTS_TS_NhapKho_DonViTinh}</td>
+            <td>${item.DT_QLTS_TS_NhomTaiSan}</td>
+            <td>${item.DT_QLTS_TS_LoaiTaiSan}</td>
+            <td>${item.DT_QLTS_TS_ThuongHieu}</td>
+            <td>${new Date(item.DT_QLTS_TS_NgayDuaVaoSuDung).toLocaleDateString()}</td>
+            <td>${item.DT_QLTS_TS_NhapKho_MaNhanSu}</td>
+            <td>${item.DT_QLTS_TS_NhapKho_TenKho_Ten}</td>
+            <td>
+              <button id="UpdateBtn" class="btn btn-warning btn-sm" onclick="editTaiSan(${item.id})">Sửa</button>
+              <button id="DeleteBtn" class="btn btn-danger btn-sm" onclick="deleteTaiSan(${item.id})">Xóa</button>
             </td>
           `;
           tableBody.appendChild(row);
@@ -134,61 +237,370 @@
         console.error('Error fetching tài sản:', error);
       }
     }
+    (() => {
+      const form = document.getElementById('taiSanForm');
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    })();
+    // Kiểm tra mã tài sản và serial number đã tồn tại chưa
+    async function kiemTraTrungMaTaiSan(maTaiSan, serialNumber) {
+      try {
+        const response = await fetch('http://localhost:3000/DSTaiSan');
+        const data = await response.json();
 
-    // Kiểm tra mã tài sản và số seri có trùng không
-    function checkTaiSanTrung(maTaiSan) {
-      return taiSanData.some(item => item.DT_QLTS_TS_MaTaiSan === maTaiSan);
+        // Kiểm tra trùng mã tài sản
+        const isMaTaiSanTrung = data.some(item => item.DT_QLTS_TS_MaTaiSan === maTaiSan);
+        // Kiểm tra trùng serial number
+        const isSerialNumberTrung = data.some(item => item.DT_QLTS_TS_SerialNumber === serialNumber);
+
+        if (isMaTaiSanTrung) {
+          document.getElementById('maTaiSanError').classList.remove('d-none');
+          alert('Mã tài sản này đã tồn tại!');
+          return false;
+        } else {
+          document.getElementById('maTaiSanError').classList.add('d-none');
+        }
+
+        if (isSerialNumberTrung) {
+          document.getElementById('serialNumberError').classList.remove('d-none');
+          alert('Serial Number này đã tồn tại!');  
+          return false;
+        } else {
+          document.getElementById('serialNumberError').classList.add('d-none');
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Lỗi khi kiểm tra mã tài sản hoặc serial number:', error);
+        return false;
+      }
     }
-
-    // Submit form và thêm tài sản
-    document.getElementById('taiSanForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      // Lấy giá trị các trường từ form
-      const maTaiSan = document.getElementById('maTaiSan').value.trim();
-      const tenTaiSan = document.getElementById('tenTaiSan').value.trim();
-
-      // Validate dữ liệu
-      if (!maTaiSan || !tenTaiSan) {
-        alert('Mã tài sản và tên tài sản không được để trống.');
-        return;
+    async function addTaiSan() {
+      action = 1; // Gán giá trị 1 cho hành động thêm mới
+      document.getElementById('taiSanForm').reset(); // Đặt lại form
+      const modalTitle = document.getElementById('modalTitle');
+      if (modalTitle) {
+        modalTitle.innerText = "Thêm Tài Sản Mới";
       }
-
-      // Kiểm tra trùng mã tài sản
-      if (checkTaiSanTrung(maTaiSan)) {
-        alert('Mã tài sản đã tồn tại.');
-        return;
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.innerText = "Thêm Mới";
       }
+      const modalElement = new bootstrap.Modal(document.getElementById('modal'));
+      modalElement.show();
+    }
+    // Gửi yêu cầu thêm tài sản mới đến đúng endpoint
+    async function ThemTaiSanMoi() {
+      const maTaiSan = document.getElementById('maTaiSan').value;
+      const serialNumber = document.getElementById('serialNumber').value;
 
-      const newTaiSan = {
-        DT_QLTS_TS_MaTaiSan: maTaiSan,
-        DT_QLTS_TS_TenTaiSan: tenTaiSan,
-        DT_QLTS_TS_NhapKho_DonViTinh: document.getElementById('donViTinh').value,
+      // Kiểm tra trùng mã tài sản và serial number
+      const isValid = await kiemTraTrungMaTaiSan(maTaiSan, serialNumber);
+      if (!isValid) return;
+
+      const response = await fetch('http://localhost:3000/DSTaiSan');
+      const DSTaiSan = await response.json();
+
+      // Lấy ID của tài sản cuối cùng (ID lớn nhất)
+      const lastItem = DSTaiSan[DSTaiSan.length - 1];
+      const lastID = lastItem ? lastItem.id : 20459; // Mặc định là ID trước đó
+
+      // Tạo ID mới cho tài sản tiếp theo
+      const newID = (parseInt(lastID) + 1).toString();
+
+      const taiSanMoi = {
+        id: newID,
+        DT_QLTS_TS_Chon: false,
+        DT_QLTS_TS_MaTaiSan: document.getElementById('maTaiSan').value,
+        DT_QLTS_TS_TenTaiSan: document.getElementById('tenTaiSan').value,
+        DT_QLTS_TS_SerialNumber: document.getElementById('serialNumber').value,
+        DT_QLTS_TS_PBQL: document.getElementById('pbql').value,
         DT_QLTS_TS_NhomTaiSan: document.getElementById('nhomTaiSan').value,
         DT_QLTS_TS_LoaiTaiSan: document.getElementById('loaiTaiSan').value,
+        DT_QLTS_TS_PhongHienTai: document.getElementById('phongHienTai').value,
+        DT_QLTS_TS_TenPhongHienTai: document.getElementById('tenPhongHienTai').value,
+        DT_QLTS_TS_MaNhomThietBiDiKem: document.getElementById('maNhomThietBiDiKem').value,
+        DT_QLTS_TS_NguonGoc: document.getElementById('nguonGoc').value,
+        DT_QLTS_TS_TinhTrang: document.getElementById('tinhTrang').value,
+        DT_QLTS_TS_MoTa: document.getElementById('moTa').value,
+        DT_QLTS_TS_Model: document.getElementById('model').value,
         DT_QLTS_TS_ThuongHieu: document.getElementById('thuongHieu').value,
+        DT_QLTS_TS_NamSanXuat: document.getElementById('namSanXuat').value,
         DT_QLTS_TS_NgayDuaVaoSuDung: document.getElementById('ngayDuaVaoSuDung').value,
+        DT_QLTS_TS_XuatXu: document.getElementById('xuatXu').value,
+        DT_QLTS_TS_KichThuoc_Dai: document.getElementById('kichThuocDai').value,
+        DT_QLTS_TS_KichThuoc_Rong: document.getElementById('kichThuocRong').value,
+        DT_QLTS_TS_KichThuoc_Cao: document.getElementById('kichThuocCao').value,
+        DT_QLTS_TS_GiayToKemTheo_TenFile: document.getElementById('giayToKemTheoTenFile').value,
+        DT_QLTS_TS_GiayToKemTheo_DataFile: document.getElementById('giayToKemTheoDataFile').value,
+        DT_QLTS_TS_TS_GhiChu: document.getElementById('ghiChu').value,
         DT_QLTS_TS_NhapKho_MaNhanSu: document.getElementById('maNhanSu').value,
-        DT_QLTS_TS_NhapKho_TenKho_Ten: document.getElementById('tenKho').value
+        DT_QLTS_TS_NhapKho_TenKho: document.getElementById('soKho').value,
+        DT_QLTS_TS_NhapKho_TenKho_Ten: document.getElementById('tenKho').value,
+        DT_QLTS_TS_NhapKho_DonViTinh: document.getElementById('donViTinh').value
       };
 
-      // Gửi yêu cầu thêm tài sản mới
-      fetch('http://localhost:3000/taisan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTaiSan)
-      })
-      .then(response => response.json())
-      .then(data => {
-        alert('Thêm tài sản thành công!');
-        fetchDSTaiSan();  // Refresh danh sách
-        closeModal();      // Đóng modal
-      })
-      .catch(error => console.error('Error adding tài sản:', error));
-    });
+      try {
+        
+        const response = await fetch('http://localhost:3000/DSTaiSan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taiSanMoi),
+        });
+
+        if (!response.ok) {
+          throw new Error('Lỗi khi thêm tài sản.');
+        }
+        alert("Thêm tài sản thành công");
+        
+        const modalElement = document.getElementById('modal');
+        const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+        bootstrapModal.hide();
+        fetchDSTaiSan(); // Tải lại danh sách tài sản
+      } catch (error) {
+        console.error('Lỗi khi thêm tài sản:', error);
+      }
+    }
+
+    // Hàm mở modal để sửa tài sản
+    let currentAssetId;
+    async function editTaiSan(Id) {
+      currentAssetId = Id;
+      try {
+        const response = await fetch(`http://localhost:3000/DSTaiSan/${Id}`);
+        const taiSan = await response.json();
+        
+        if (!taiSan) {
+          alert("Không tìm thấy tài sản để sửa.");
+          return;
+        }
+
+        // Điền thông tin tài sản vào form
+        document.getElementById('maTaiSan').value = taiSan.DT_QLTS_TS_MaTaiSan;
+        document.getElementById('tenTaiSan').value = taiSan.DT_QLTS_TS_TenTaiSan;
+        document.getElementById('serialNumber').value = taiSan.DT_QLTS_TS_SerialNumber;
+        document.getElementById('pbql').value = taiSan.DT_QLTS_TS_PBQL;
+        document.getElementById('nhomTaiSan').value = taiSan.DT_QLTS_TS_NhomTaiSan;
+        document.getElementById('loaiTaiSan').value = taiSan.DT_QLTS_TS_LoaiTaiSan;
+        document.getElementById('phongHienTai').value = taiSan.DT_QLTS_TS_PhongHienTai;
+        document.getElementById('tenPhongHienTai').value = taiSan.DT_QLTS_TS_TenPhongHienTai;
+        document.getElementById('maNhomThietBiDiKem').value = taiSan.DT_QLTS_TS_MaNhomThietBiDiKem;
+        document.getElementById('nguonGoc').value = taiSan.DT_QLTS_TS_NguonGoc;
+        document.getElementById('tinhTrang').value = taiSan.DT_QLTS_TS_TinhTrang;
+        document.getElementById('moTa').value = taiSan.DT_QLTS_TS_MoTa;
+        document.getElementById('model').value = taiSan.DT_QLTS_TS_Model;
+        document.getElementById('thuongHieu').value = taiSan.DT_QLTS_TS_ThuongHieu;
+        document.getElementById('namSanXuat').value = taiSan.DT_QLTS_TS_NamSanXuat;
+        const ngayDuaVaoSuDung = new Date(taiSan.DT_QLTS_TS_NgayDuaVaoSuDung);
+          if (!isNaN(ngayDuaVaoSuDung)) {
+            document.getElementById('ngayDuaVaoSuDung').value = ngayDuaVaoSuDung.toISOString().split('T')[0];
+          } else {
+            console.error("Ngày đưa vào sử dụng không hợp lệ.");
+          }
+
+        //document.getElementById('ngayDuaVaoSuDung').value = new Date(taiSan.DT_QLTS_TS_NgayDuaVaoSuDung).toISOString.split('T')[0];
+        document.getElementById('xuatXu').value = taiSan.DT_QLTS_TS_XuatXu;
+        document.getElementById('kichThuocDai').value = taiSan.DT_QLTS_TS_KichThuoc_Dai;
+        document.getElementById('kichThuocRong').value = taiSan.DT_QLTS_TS_KichThuoc_Rong;
+        document.getElementById('kichThuocCao').value = taiSan.DT_QLTS_TS_KichThuoc_Cao;
+        document.getElementById('giayToKemTheoTenFile').value = taiSan.DT_QLTS_TS_GiayToKemTheo_TenFile;
+        document.getElementById('giayToKemTheoDataFile').value = taiSan.DT_QLTS_TS_GiayToKemTheo_DataFile;
+        document.getElementById('ghiChu').value = taiSan.DT_QLTS_TS_TS_GhiChu;
+        document.getElementById('maNhanSu').value = taiSan.DT_QLTS_TS_NhapKho_MaNhanSu;
+        document.getElementById('soKho').value = taiSan.DT_QLTS_TS_NhapKho_TenKho;
+        document.getElementById('tenKho').value = taiSan.DT_QLTS_TS_NhapKho_TenKho_Ten;
+        document.getElementById('donViTinh').value = taiSan.DT_QLTS_TS_NhapKho_DonViTinh;
+
+        action = 2;
+        // Thay đổi tiêu đề và nút lưu
+        const modalTitle = document.getElementById('modalTitle');
+          if (modalTitle) {
+            modalTitle.innerText = "Cập Nhật Tài Sản";
+          } else {
+            console.error('Không tìm thấy phần tử modalTitle');
+          }
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.innerText = "Cập Nhật";
+          } else {
+            console.error('Không tìm thấy phần tử submitBtn');
+          }
+
+        // Hiển thị modal
+        const modalElement = new bootstrap.Modal(document.getElementById('modal'));
+        modalElement.show();
+
+      } catch (error) {
+        console.error("Lỗi khi mở modal sửa tài sản:", error);
+      }
+    }
+
+    // Hàm cập nhật tài sản
+    async function capNhatTaiSan(Id) {
+      const taiSanCapNhat = {
+        DT_QLTS_TS_MaTaiSan: document.getElementById('maTaiSan').value,
+        DT_QLTS_TS_TenTaiSan: document.getElementById('tenTaiSan').value,
+        DT_QLTS_TS_SerialNumber: document.getElementById('serialNumber').value,
+        DT_QLTS_TS_PBQL: document.getElementById('pbql').value,
+        DT_QLTS_TS_NhomTaiSan: document.getElementById('nhomTaiSan').value,
+        DT_QLTS_TS_LoaiTaiSan: document.getElementById('loaiTaiSan').value,
+        DT_QLTS_TS_PhongHienTai: document.getElementById('phongHienTai').value,
+        DT_QLTS_TS_TenPhongHienTai: document.getElementById('tenPhongHienTai').value,
+        DT_QLTS_TS_MaNhomThietBiDiKem: document.getElementById('maNhomThietBiDiKem').value,
+        DT_QLTS_TS_NguonGoc: document.getElementById('nguonGoc').value,
+        DT_QLTS_TS_TinhTrang: document.getElementById('tinhTrang').value,
+        DT_QLTS_TS_MoTa: document.getElementById('moTa').value,
+        DT_QLTS_TS_Model: document.getElementById('model').value,
+        DT_QLTS_TS_ThuongHieu: document.getElementById('thuongHieu').value,
+        DT_QLTS_TS_NamSanXuat: document.getElementById('namSanXuat').value,
+        DT_QLTS_TS_NgayDuaVaoSuDung: document.getElementById('ngayDuaVaoSuDung').value,
+        DT_QLTS_TS_XuatXu: document.getElementById('xuatXu').value,
+        DT_QLTS_TS_KichThuoc_Dai: document.getElementById('kichThuocDai').value,
+        DT_QLTS_TS_KichThuoc_Rong: document.getElementById('kichThuocRong').value,
+        DT_QLTS_TS_KichThuoc_Cao: document.getElementById('kichThuocCao').value,
+        DT_QLTS_TS_GiayToKemTheo_TenFile: document.getElementById('giayToKemTheoTenFile').value,
+        DT_QLTS_TS_GiayToKemTheo_DataFile: document.getElementById('giayToKemTheoDataFile').value,
+        DT_QLTS_TS_TS_GhiChu: document.getElementById('ghiChu').value,
+        DT_QLTS_TS_NhapKho_MaNhanSu: document.getElementById('maNhanSu').value,
+        DT_QLTS_TS_NhapKho_TenKho: document.getElementById('soKho').value,
+        DT_QLTS_TS_NhapKho_TenKho_Ten: document.getElementById('tenKho').value,
+        DT_QLTS_TS_NhapKho_DonViTinh: document.getElementById('donViTinh').value
+      };
+
+      try {
+        const response = await fetch(`http://localhost:3000/DSTaiSan/${Id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(taiSanCapNhat),
+        });
+
+        if (!response.ok) {
+          throw new Error('Lỗi khi cập nhật tài sản.');
+        }
+
+        alert("Cập nhật tài sản thành công");
+        bootstrap.Modal.getInstance(document.getElementById('modal')).hide();
+        fetchDSTaiSan(); // Tải lại danh sách
+      } catch (error) {
+        console.error('Lỗi khi cập nhật tài sản:', error);
+      }
+    }
+    async function deleteTaiSan(Id) {
+      if (confirm("Bạn có chắc chắn muốn xóa tài sản này?")) {
+        try {
+          const response = await fetch(`http://localhost:3000/DSTaiSan/${Id}`, {
+            method: 'DELETE',
+          });
+
+          if (!response.ok) {
+            throw new Error('Lỗi khi xóa tài sản.');
+          }
+
+          alert("Xóa tài sản thành công");
+          fetchDSTaiSan(); // Tải lại danh sách
+        } catch (error) {
+          console.error('Lỗi khi xóa tài sản:', error);
+        }
+      }
+    }
+    // Xử lý sự kiện form submit để thêm tài sản mới hoặc cập nhật tài sản
+    document.getElementById('taiSanForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của form
+      if (action === 1) {
+        ThemTaiSanMoi(); // Gọi hàm thêm tài sản mới
+      } else if (action === 2) {
+        capNhatTaiSan(currentAssetId); // Gọi hàm cập nhật tài sản
+      }
+        });
+
+    function renderTaiSanTable() {
+      const tableBody = document.getElementById('taiSanBody');
+      tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, taiSanData.length);
+
+      for (let i = startIndex; i < endIndex; i++) {
+        const item = taiSanData[i]; // `data` chứa danh sách tài sản
+        const row = tableBody.insertRow();
+
+        row.innerHTML = `
+          <td>${i + 1}</td>
+          <td><input type="checkbox" ${item.DT_QLTS_TS_Chon ? 'checked' : ''}></td>
+          <td>${item.DT_QLTS_TS_MaTaiSan}</td>
+          <td>${item.DT_QLTS_TS_TenTaiSan}</td>
+          <td>${item.DT_QLTS_TS_NhapKho_DonViTinh}</td>
+          <td>${item.DT_QLTS_TS_NhomTaiSan}</td>
+          <td>${item.DT_QLTS_TS_LoaiTaiSan}</td>
+          <td>${item.DT_QLTS_TS_ThuongHieu}</td>
+          <td>${new Date(item.DT_QLTS_TS_NgayDuaVaoSuDung).toLocaleDateString()}</td>
+          <td>${item.DT_QLTS_TS_NhapKho_MaNhanSu}</td>
+          <td>${item.DT_QLTS_TS_NhapKho_TenKho_Ten}</td>
+          <td>
+              <button id="UpdateBtn" class="btn btn-warning btn-sm" onclick="editTaiSan(${item.id})">Sửa</button>
+              <button id="DeleteBtn" class="btn btn-danger btn-sm" onclick="deleteTaiSan(${item.id})">Xóa</button>
+            </td>
+        `;
+      }
+      updatePagination(taiSanData.length, itemsPerPage);
+
+      const currentPageElement = document.getElementById('currentPage');
+      if (currentPageElement) {
+        currentPageElement.innerText = currentPage;
+      }
+
+    }
+    let itemsPerPage = 3; // Mặc định là 5
+    let currentPage = 1;
+    let taiSanList = []; // Đây là danh sách tài sản của bạn
+
+    function changeItemsPerPage() {
+      const selectElement = document.getElementById('itemsPerPage');
+      itemsPerPage = parseInt(selectElement.value, 10); // Lấy số lượng tài sản trên mỗi trang
+      currentPage = 1; // Đặt lại trang hiện tại về 1 khi thay đổi số lượng
+      renderTaiSanTable(); // Cập nhật lại bảng với số lượng mới
+    }
+    function nextPage() {
+      const totalPages = Math.ceil(taiSanList.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTaiSanTable(); // Cập nhật bảng khi chuyển sang trang kế tiếp
+      }
+    }
+
+    function previousPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTaiSanTable(); // Cập nhật bảng khi quay lại trang trước
+      }
+    }
+    function updatePagination(totalItems, itemsPerPage) {
+      const paginationElement = document.getElementById('pagination');
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      paginationElement.innerHTML = '';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const button = document.createElement('button');
+        button.innerText = i;
+        button.onclick = () => {
+          currentPage = i;
+          renderTaiSanTable();
+        };
+        paginationElement.appendChild(button);
+      }
+    }
+
+
+
 
     // Load danh sách tài sản khi trang load
     document.addEventListener('DOMContentLoaded', fetchDSTaiSan);
+
   </script>
 </body>
 </html>
