@@ -6,7 +6,12 @@
   <title>Danh sách tài sản</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon"> 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <style> 
+    #pagination button.active {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>  
 </head>
 <body>
   <div class="container mt-4">
@@ -15,13 +20,13 @@
     <button class="btn btn-success mb-4" onclick="addTaiSan()">Thêm Mới Tài Sản</button>
     <label for="itemsPerPage">Số tài sản trên mỗi trang:</label>
       <select id="itemsPerPage" onchange="changeItemsPerPage()">
-        <option value="2" selected>2</option>
-        <option value="4">4</option>
-        <option value="6">6</option>
-        <option value="8">8</option>
+        <option value="5" selected>5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
       </select>
     <table id="taisanTable" class="table table-bordered table-striped">
-      <thead class="table-light">
+      <thead class="table-light text-center align-middle">
         <tr>
           <th>STT</th>
           <th>Chọn</th>
@@ -205,37 +210,17 @@
   <script>
     let taiSanData = [];
     let action = 0;
+    let itemsPerPage = 5; // Mặc định là 5
+    let currentPage = 1;
     // Lấy danh sách tài sản từ server
     async function fetchDSTaiSan() {
-      try {
-        const response = await fetch('http://localhost:3000/DSTaiSan'); // Đổi endpoint thành /DSTaiSan
-        taiSanData = await response.json();
-        const tableBody = document.querySelector('#taisanTable tbody');
-        tableBody.innerHTML = ''; // Clear existing rows
-        taiSanData.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td><input type="checkbox" ${item.DT_QLTS_TS_Chon ? 'checked' : ''}></td>
-            <td>${item.DT_QLTS_TS_MaTaiSan}</td>
-            <td>${item.DT_QLTS_TS_TenTaiSan}</td>
-            <td>${item.DT_QLTS_TS_NhapKho_DonViTinh}</td>
-            <td>${item.DT_QLTS_TS_NhomTaiSan}</td>
-            <td>${item.DT_QLTS_TS_LoaiTaiSan}</td>
-            <td>${item.DT_QLTS_TS_ThuongHieu}</td>
-            <td>${new Date(item.DT_QLTS_TS_NgayDuaVaoSuDung).toLocaleDateString()}</td>
-            <td>${item.DT_QLTS_TS_NhapKho_MaNhanSu}</td>
-            <td>${item.DT_QLTS_TS_NhapKho_TenKho_Ten}</td>
-            <td>
-              <button id="UpdateBtn" class="btn btn-warning btn-sm" onclick="editTaiSan(${item.id})">Sửa</button>
-              <button id="DeleteBtn" class="btn btn-danger btn-sm" onclick="deleteTaiSan(${item.id})">Xóa</button>
-            </td>
-          `;
-          tableBody.appendChild(row);
-        });
-      } catch (error) {
-        console.error('Error fetching tài sản:', error);
-      }
+        fetch('http://localhost:3000/DSTaiSan') // URL mẫu, thay bằng API thực tế của bạn
+          .then(response => response.json())
+          .then(data => {
+            taiSanData = data; // Cập nhật danh sách tài sản
+            renderTaiSanTable(); // Hiển thị dữ liệu ban đầu với phân trang
+          })  
+          .catch(error => console.error('Lỗi khi tải danh sách tài sản:', error));
     }
     (() => {
       const form = document.getElementById('taiSanForm');
@@ -246,7 +231,7 @@
         }
         form.classList.add('was-validated');
       }, false);
-    })();
+    })(); 
     // Kiểm tra mã tài sản và serial number đã tồn tại chưa
     async function kiemTraTrungMaTaiSan(maTaiSan, serialNumber) {
       try {
@@ -296,8 +281,8 @@
     }
     // Gửi yêu cầu thêm tài sản mới đến đúng endpoint
     async function ThemTaiSanMoi() {
-      const maTaiSan = document.getElementById('maTaiSan').value;
-      const serialNumber = document.getElementById('serialNumber').value;
+      const maTaiSan = document.getElementById('maTaiSan').value.trim();
+      const serialNumber = document.getElementById('serialNumber').value.trim();
 
       // Kiểm tra trùng mã tài sản và serial number
       const isValid = await kiemTraTrungMaTaiSan(maTaiSan, serialNumber);
@@ -442,37 +427,47 @@
 
     // Hàm cập nhật tài sản
     async function capNhatTaiSan(Id) {
-      const taiSanCapNhat = {
-        DT_QLTS_TS_MaTaiSan: document.getElementById('maTaiSan').value,
-        DT_QLTS_TS_TenTaiSan: document.getElementById('tenTaiSan').value,
-        DT_QLTS_TS_SerialNumber: document.getElementById('serialNumber').value,
-        DT_QLTS_TS_PBQL: document.getElementById('pbql').value,
-        DT_QLTS_TS_NhomTaiSan: document.getElementById('nhomTaiSan').value,
-        DT_QLTS_TS_LoaiTaiSan: document.getElementById('loaiTaiSan').value,
-        DT_QLTS_TS_PhongHienTai: document.getElementById('phongHienTai').value,
-        DT_QLTS_TS_TenPhongHienTai: document.getElementById('tenPhongHienTai').value,
-        DT_QLTS_TS_MaNhomThietBiDiKem: document.getElementById('maNhomThietBiDiKem').value,
-        DT_QLTS_TS_NguonGoc: document.getElementById('nguonGoc').value,
-        DT_QLTS_TS_TinhTrang: document.getElementById('tinhTrang').value,
-        DT_QLTS_TS_MoTa: document.getElementById('moTa').value,
-        DT_QLTS_TS_Model: document.getElementById('model').value,
-        DT_QLTS_TS_ThuongHieu: document.getElementById('thuongHieu').value,
-        DT_QLTS_TS_NamSanXuat: document.getElementById('namSanXuat').value,
-        DT_QLTS_TS_NgayDuaVaoSuDung: document.getElementById('ngayDuaVaoSuDung').value,
-        DT_QLTS_TS_XuatXu: document.getElementById('xuatXu').value,
-        DT_QLTS_TS_KichThuoc_Dai: document.getElementById('kichThuocDai').value,
-        DT_QLTS_TS_KichThuoc_Rong: document.getElementById('kichThuocRong').value,
-        DT_QLTS_TS_KichThuoc_Cao: document.getElementById('kichThuocCao').value,
-        DT_QLTS_TS_GiayToKemTheo_TenFile: document.getElementById('giayToKemTheoTenFile').value,
-        DT_QLTS_TS_GiayToKemTheo_DataFile: document.getElementById('giayToKemTheoDataFile').value,
-        DT_QLTS_TS_TS_GhiChu: document.getElementById('ghiChu').value,
-        DT_QLTS_TS_NhapKho_MaNhanSu: document.getElementById('maNhanSu').value,
-        DT_QLTS_TS_NhapKho_TenKho: document.getElementById('soKho').value,
-        DT_QLTS_TS_NhapKho_TenKho_Ten: document.getElementById('tenKho').value,
-        DT_QLTS_TS_NhapKho_DonViTinh: document.getElementById('donViTinh').value
-      };
+      const maTaiSan = document.getElementById('maTaiSan').value.trim();
+      const serialNumber = document.getElementById('serialNumber').value.trim();
 
+
+      // Kiểm tra trùng mã tài sản và serial number
       try {
+        // Kiểm tra trùng mã tài sản và serial number
+        const isValid = await kiemTraTrungMaTaiSan(maTaiSan, serialNumber);
+        if (!isValid) return;
+
+
+        const taiSanCapNhat = {
+          DT_QLTS_TS_MaTaiSan: maTaiSan,
+          DT_QLTS_TS_TenTaiSan: document.getElementById('tenTaiSan').value,
+          DT_QLTS_TS_SerialNumber: serialNumber,
+          DT_QLTS_TS_PBQL: document.getElementById('pbql').value,
+          DT_QLTS_TS_NhomTaiSan: document.getElementById('nhomTaiSan').value,
+          DT_QLTS_TS_LoaiTaiSan: document.getElementById('loaiTaiSan').value,
+          DT_QLTS_TS_PhongHienTai: document.getElementById('phongHienTai').value,
+          DT_QLTS_TS_TenPhongHienTai: document.getElementById('tenPhongHienTai').value,
+          DT_QLTS_TS_MaNhomThietBiDiKem: document.getElementById('maNhomThietBiDiKem').value,
+          DT_QLTS_TS_NguonGoc: document.getElementById('nguonGoc').value,
+          DT_QLTS_TS_TinhTrang: document.getElementById('tinhTrang').value,
+          DT_QLTS_TS_MoTa: document.getElementById('moTa').value,
+          DT_QLTS_TS_Model: document.getElementById('model').value,
+          DT_QLTS_TS_ThuongHieu: document.getElementById('thuongHieu').value,
+          DT_QLTS_TS_NamSanXuat: document.getElementById('namSanXuat').value,
+          DT_QLTS_TS_NgayDuaVaoSuDung: document.getElementById('ngayDuaVaoSuDung').value,
+          DT_QLTS_TS_XuatXu: document.getElementById('xuatXu').value,
+          DT_QLTS_TS_KichThuoc_Dai: document.getElementById('kichThuocDai').value,
+          DT_QLTS_TS_KichThuoc_Rong: document.getElementById('kichThuocRong').value,
+          DT_QLTS_TS_KichThuoc_Cao: document.getElementById('kichThuocCao').value,
+          DT_QLTS_TS_GiayToKemTheo_TenFile: document.getElementById('giayToKemTheoTenFile').value,
+          DT_QLTS_TS_GiayToKemTheo_DataFile: document.getElementById('giayToKemTheoDataFile').value,
+          DT_QLTS_TS_TS_GhiChu: document.getElementById('ghiChu').value,
+          DT_QLTS_TS_NhapKho_MaNhanSu: document.getElementById('maNhanSu').value,
+          DT_QLTS_TS_NhapKho_TenKho: document.getElementById('soKho').value,
+          DT_QLTS_TS_NhapKho_TenKho_Ten: document.getElementById('tenKho').value,
+          DT_QLTS_TS_NhapKho_DonViTinh: document.getElementById('donViTinh').value
+        };
+
         const response = await fetch(`http://localhost:3000/DSTaiSan/${Id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -488,6 +483,7 @@
         fetchDSTaiSan(); // Tải lại danh sách
       } catch (error) {
         console.error('Lỗi khi cập nhật tài sản:', error);
+        alert('Đã xảy ra lỗi khi cập nhật tài sản. Vui lòng thử lại.');
       }
     }
     async function deleteTaiSan(Id) {
@@ -527,7 +523,7 @@
 
       for (let i = startIndex; i < endIndex; i++) {
         const item = taiSanData[i]; // `data` chứa danh sách tài sản
-        const row = tableBody.insertRow();
+        const row = document.createElement('tr');
 
         row.innerHTML = `
           <td>${i + 1}</td>
@@ -546,6 +542,7 @@
               <button id="DeleteBtn" class="btn btn-danger btn-sm" onclick="deleteTaiSan(${item.id})">Xóa</button>
             </td>
         `;
+        tableBody.appendChild(row);
       }
       updatePagination(taiSanData.length, itemsPerPage);
 
@@ -555,9 +552,7 @@
       }
 
     }
-    let itemsPerPage = 3; // Mặc định là 5
-    let currentPage = 1;
-    let taiSanList = []; // Đây là danh sách tài sản của bạn
+    
 
     function changeItemsPerPage() {
       const selectElement = document.getElementById('itemsPerPage');
@@ -587,6 +582,7 @@
       for (let i = 1; i <= totalPages; i++) {
         const button = document.createElement('button');
         button.innerText = i;
+        button.className = currentPage === i ? 'active' : '';
         button.onclick = () => {
           currentPage = i;
           renderTaiSanTable();
@@ -599,7 +595,11 @@
 
 
     // Load danh sách tài sản khi trang load
-    document.addEventListener('DOMContentLoaded', fetchDSTaiSan);
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchDSTaiSan(); // Tải danh sách tài sản
+      document.getElementById('itemsPerPage').value = itemsPerPage; // Thiết lập giá trị mặc định
+    });
+
 
   </script>
 </body>
